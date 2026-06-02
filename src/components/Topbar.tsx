@@ -17,26 +17,26 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           onClick={onMenuClick}
           className="lg:hidden mr-2 p-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
           aria-label="เปิดเมนู">
-          
+
           <Menu size={22} />
         </button>
         <div className="relative hidden md:block">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             size={18} />
-          
+
           <input
             type="text"
             placeholder="ค้นหาเมนู..."
             className="pl-10 pr-4 py-2 bg-slate-100 border-transparent rounded-lg text-sm focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all w-48 lg:w-64" />
-          
+
         </div>
       </div>
 
       <div className="flex items-center space-x-4 sm:space-x-6">
-        <div className="text-xs sm:text-sm text-slate-600 hidden sm:block font-medium">
+        {/* <div className="text-xs sm:text-sm text-slate-600 hidden sm:block font-medium">
           {formatDate(currentTime.toISOString())}
-        </div>
+        </div> */}
 
         <button className="relative text-slate-500 hover:text-indigo-600 transition-colors">
           <Bell size={20} />

@@ -62,12 +62,12 @@ export function AdminUsers() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">จัดการผู้ใช้งาน</h1>
-          <p className="text-slate-500">เพิ่ม แก้ไข ลบบัญชีพนักงานในระบบ</p>
+          {/* <p className="text-slate-500">เพิ่ม แก้ไข ลบบัญชีพนักงานในระบบ</p> */}
         </div>
         <button
           onClick={openAddModal}
           className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg font-medium flex items-center transition-colors shadow-sm">
-          
+
           <UserPlus size={20} className="mr-2" />
           เพิ่มผู้ใช้ใหม่
         </button>
@@ -83,7 +83,7 @@ export function AdminUsers() {
         <div
           key={role.id}
           className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          
+
             <p className="text-sm text-slate-500 mb-1">{role.name}</p>
             <p className="text-2xl font-bold text-slate-900">
               {users.filter((u) => u.roleId === role.id).length}
@@ -98,14 +98,14 @@ export function AdminUsers() {
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               size={20} />
-            
+
             <input
               type="text"
               placeholder="ค้นหาชื่อหรืออีเมล..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" />
-            
+
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -124,7 +124,7 @@ export function AdminUsers() {
               <tr
                 key={user.id}
                 className="bg-white border-b border-slate-100 hover:bg-slate-50">
-                
+
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold mr-3 shrink-0">
@@ -148,7 +148,7 @@ export function AdminUsers() {
                   <td className="px-6 py-4">
                     <span
                     className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full border ${getRoleColor(user.roleId).badge}`}>
-                    
+
                       <Shield size={12} className="mr-1" />
                       {getRoleName(user.roleId)}
                     </span>
@@ -172,14 +172,14 @@ export function AdminUsers() {
                       <button
                       onClick={() => openEditModal(user)}
                       className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                      
+
                         <Edit size={18} />
                       </button>
                       <button
                       onClick={() => handleDelete(user)}
                       disabled={user.id === currentUser.id}
                       className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
-                      
+
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -191,7 +191,7 @@ export function AdminUsers() {
                   <td
                   colSpan={5}
                   className="px-6 py-12 text-center text-slate-500">
-                  
+
                     ไม่พบผู้ใช้งาน
                   </td>
                 </tr>
@@ -212,7 +212,7 @@ export function AdminUsers() {
               <button
               onClick={() => setIsModalOpen(false)}
               className="text-slate-400 hover:text-slate-600">
-              
+
                 <X size={22} />
               </button>
             </div>
@@ -232,7 +232,7 @@ export function AdminUsers() {
                 }
                 placeholder="ชื่อ นามสกุล"
                 className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" />
-              
+
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -249,7 +249,7 @@ export function AdminUsers() {
                 }
                 placeholder="user@example.com"
                 className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" />
-              
+
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
@@ -264,7 +264,7 @@ export function AdminUsers() {
                 })
                 }
                 className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
-                
+
                   {roles.map((role) =>
                 <option key={role.id} value={role.id}>
                       {role.name} — {role.description}
@@ -288,7 +288,7 @@ export function AdminUsers() {
                     })
                     }
                     className="accent-indigo-600" />
-                  
+
                     <span className="text-sm">ใช้งานอยู่</span>
                   </label>
                   <label className="flex-1 flex items-center gap-2 p-3 border border-slate-200 rounded-lg cursor-pointer has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
@@ -302,7 +302,7 @@ export function AdminUsers() {
                     })
                     }
                     className="accent-indigo-600" />
-                  
+
                     <span className="text-sm">ปิดใช้งาน</span>
                   </label>
                 </div>
@@ -312,14 +312,14 @@ export function AdminUsers() {
               <button
               onClick={() => setIsModalOpen(false)}
               className="px-5 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-white transition-colors">
-              
+
                 ยกเลิก
               </button>
               <button
               onClick={handleSave}
               disabled={!form.name.trim() || !form.email.trim()}
               className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-lg font-medium transition-colors shadow-sm">
-              
+
                 บันทึก
               </button>
             </div>
