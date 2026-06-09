@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ImagePlus, Save, X } from "lucide-react";
 import { formatCurrency } from "../utils/format";
 import { getCategories } from "../services/categoryApi";
-import { createProductApi } from "../services/productApi";
+import {
+  getProductById,
+  updateProductApi,
+} from "../services/productApi";
 import type { Category } from "../types";
 
-export function AddProduct() {
+export function EditProduct() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
@@ -27,18 +31,37 @@ export function AddProduct() {
   });
 
   useEffect(() => {
-    async function loadCategories() {
+    async function loadData() {
       try {
-        const data = await getCategories();
-        setCategories(Array.isArray(data) ? data : []);
+        const [categoryData, product] = await Promise.all([
+          getCategories(),
+          getProductById(Number(id)),
+        ]);
+
+        setCategories(Array.isArray(categoryData) ? categoryData : []);
+
+        setForm({
+          sku: product.sku ?? "",
+          barcode: product.barcode ?? "",
+          name: product.name ?? "",
+          categoryId: String(product.categoryId ?? ""),
+          description: product.description ?? "",
+          price: String(product.price ?? ""),
+          cost: String(product.cost ?? ""),
+          stock: String(product.stock ?? ""),
+          minStock: String(product.minStock ?? ""),
+          imageUrl: product.imageUrl ?? "",
+          status: product.status ? "active" : "inactive",
+        });
       } catch (error) {
-        console.error("Load categories failed", error);
-        setCategories([]);
+        console.error("Load product failed", error);
+        alert("โหลดข้อมูลสินค้าไม่สำเร็จ");
+        navigate("/products");
       }
     }
 
-    loadCategories();
-  }, []);
+    loadData();
+  }, [id, navigate]);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({
@@ -50,12 +73,12 @@ export function AddProduct() {
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
 
-    if (!form.sku.trim() || !form.name.trim() || !form.categoryId) return;
+    if (!id || !form.sku.trim() || !form.name.trim() || !form.categoryId) return;
 
     try {
       setSaving(true);
 
-      await createProductApi({
+      await updateProductApi(Number(id), {
         sku: form.sku.trim(),
         barcode: form.barcode.trim(),
         name: form.name.trim(),
@@ -71,7 +94,7 @@ export function AddProduct() {
 
       navigate("/products");
     } catch (error) {
-      console.error("Create product failed", error);
+      console.error("Update product failed", error);
       alert("บันทึกสินค้าไม่สำเร็จ");
     } finally {
       setSaving(false);
@@ -96,9 +119,9 @@ export function AddProduct() {
 
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
-              เพิ่มสินค้าใหม่
+              แก้ไขสินค้า
             </h1>
-            <p className="text-slate-500">กรอกข้อมูลสินค้าให้ครบถ้วน</p>
+            <p className="text-slate-500">แก้ไขข้อมูลสินค้าในระบบ</p>
           </div>
         </div>
 
@@ -122,7 +145,7 @@ export function AddProduct() {
             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg font-medium flex items-center transition-colors shadow-sm"
           >
             <Save size={18} className="mr-2" />
-            {saving ? "กำลังบันทึก..." : "บันทึกสินค้า"}
+            {saving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
           </button>
         </div>
       </div>
@@ -139,18 +162,14 @@ export function AddProduct() {
 
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div className="md:col-span-1">
+                <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     รหัสสินค้า (SKU) <span className="text-rose-500">*</span>
                   </label>
-
                   <input
-                    type="text"
-                    required
                     value={form.sku}
                     onChange={(e) => handleChange("sku", e.target.value)}
-                    placeholder="เช่น DRK-001"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
                   />
                 </div>
 
@@ -158,14 +177,10 @@ export function AddProduct() {
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     ชื่อสินค้า <span className="text-rose-500">*</span>
                   </label>
-
                   <input
-                    type="text"
-                    required
                     value={form.name}
                     onChange={(e) => handleChange("name", e.target.value)}
-                    placeholder="ชื่อสินค้าเต็ม"
-                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
                   />
                 </div>
               </div>
@@ -174,13 +189,10 @@ export function AddProduct() {
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   บาร์โค้ด
                 </label>
-
                 <input
-                  type="text"
                   value={form.barcode}
                   onChange={(e) => handleChange("barcode", e.target.value)}
-                  placeholder="Barcode ถ้ามี"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
                 />
               </div>
 
@@ -188,15 +200,12 @@ export function AddProduct() {
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   หมวดหมู่ <span className="text-rose-500">*</span>
                 </label>
-
                 <select
-                  required
                   value={form.categoryId}
                   onChange={(e) => handleChange("categoryId", e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
                 >
                   <option value="">-- เลือกหมวดหมู่ --</option>
-
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
@@ -209,15 +218,11 @@ export function AddProduct() {
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   คำอธิบายสินค้า
                 </label>
-
                 <textarea
                   rows={3}
                   value={form.description}
-                  onChange={(e) =>
-                    handleChange("description", e.target.value)
-                  }
-                  placeholder="รายละเอียดสินค้าเพิ่มเติม (ถ้ามี)"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                  onChange={(e) => handleChange("description", e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
                 />
               </div>
             </div>
@@ -229,39 +234,25 @@ export function AddProduct() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  ราคาทุน (บาท) <span className="text-rose-500">*</span>
-                </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.cost}
+                onChange={(e) => handleChange("cost", e.target.value)}
+                placeholder="ราคาทุน"
+                className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
+              />
 
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.01"
-                  value={form.cost}
-                  onChange={(e) => handleChange("cost", e.target.value)}
-                  placeholder="0.00"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  ราคาขาย (บาท) <span className="text-rose-500">*</span>
-                </label>
-
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(e) => handleChange("price", e.target.value)}
-                  placeholder="0.00"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-                />
-              </div>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.price}
+                onChange={(e) => handleChange("price", e.target.value)}
+                placeholder="ราคาขาย"
+                className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
+              />
             </div>
 
             {form.cost && form.price && (
@@ -274,7 +265,6 @@ export function AddProduct() {
                     {formatCurrency(Number(form.price) - Number(form.cost))}
                   </p>
                 </div>
-
                 <div>
                   <p className="text-xs text-indigo-600 font-medium mb-1">
                     Margin
@@ -289,39 +279,27 @@ export function AddProduct() {
 
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
             <h2 className="text-lg font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100">
-              สต็อกเริ่มต้น
+              สต็อก
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  จำนวนสต็อกเริ่มต้น
-                </label>
+              <input
+                type="number"
+                min="0"
+                value={form.stock}
+                onChange={(e) => handleChange("stock", e.target.value)}
+                placeholder="จำนวนสต็อก"
+                className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
+              />
 
-                <input
-                  type="number"
-                  min="0"
-                  value={form.stock}
-                  onChange={(e) => handleChange("stock", e.target.value)}
-                  placeholder="0"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  จุดสั่งซื้อใหม่ (Min Stock)
-                </label>
-
-                <input
-                  type="number"
-                  min="0"
-                  value={form.minStock}
-                  onChange={(e) => handleChange("minStock", e.target.value)}
-                  placeholder="ระบบจะแจ้งเตือนเมื่อสต็อกถึงจำนวนนี้"
-                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
-                />
-              </div>
+              <input
+                type="number"
+                min="0"
+                value={form.minStock}
+                onChange={(e) => handleChange("minStock", e.target.value)}
+                placeholder="Min Stock"
+                className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm"
+              />
             </div>
           </div>
         </div>
@@ -339,11 +317,7 @@ export function AddProduct() {
                     src={form.imageUrl}
                     alt="Preview"
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
                   />
-
                   <button
                     type="button"
                     onClick={() => handleChange("imageUrl", "")}
@@ -365,7 +339,7 @@ export function AddProduct() {
               value={form.imageUrl}
               onChange={(e) => handleChange("imageUrl", e.target.value)}
               placeholder="https://..."
-              className="mt-3 w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              className="mt-3 w-full bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm"
             />
           </div>
 
@@ -374,41 +348,25 @@ export function AddProduct() {
               สถานะการขาย
             </h2>
 
-            <div className="space-y-3">
-              <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:border-indigo-500 transition-colors has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
-                <input
-                  type="radio"
-                  name="status"
-                  checked={form.status === "active"}
-                  onChange={() => handleChange("status", "active")}
-                  className="mt-0.5 accent-indigo-600"
-                />
+            <label>
+              <input
+                type="radio"
+                checked={form.status === "active"}
+                onChange={() => handleChange("status", "active")}
+              />
+              เปิดขาย
+            </label>
 
-                <div>
-                  <p className="text-sm font-medium text-slate-800">เปิดขาย</p>
-                  <p className="text-xs text-slate-500">
-                    แสดงในหน้า POS และพร้อมขาย
-                  </p>
-                </div>
-              </label>
+            <br />
 
-              <label className="flex items-start gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:border-indigo-500 transition-colors has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50">
-                <input
-                  type="radio"
-                  name="status"
-                  checked={form.status === "inactive"}
-                  onChange={() => handleChange("status", "inactive")}
-                  className="mt-0.5 accent-indigo-600"
-                />
-
-                <div>
-                  <p className="text-sm font-medium text-slate-800">
-                    ปิดการขาย
-                  </p>
-                  <p className="text-xs text-slate-500">ซ่อนจาก POS ชั่วคราว</p>
-                </div>
-              </label>
-            </div>
+            <label>
+              <input
+                type="radio"
+                checked={form.status === "inactive"}
+                onChange={() => handleChange("status", "inactive")}
+              />
+              ปิดการขาย
+            </label>
           </div>
         </div>
       </form>

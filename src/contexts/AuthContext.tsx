@@ -5,13 +5,13 @@ interface AuthContextType {
   currentUser: User;
   users: User[];
   roles: Role[];
-  setCurrentUserById: (userId: string) => void;
+  setCurrentUserById: (userId: number) => void;
   hasPermission: (permission: Permission) => boolean;
   addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
   updateUser: (id: string, patch: Partial<User>) => void;
   deleteUser: (id: string) => void;
   addRole: (role: Omit<Role, 'id' | 'isBuiltIn'>) => Role;
-  updateRolePermissions: (roleId: RoleId, permissions: Permission[]) => void;
+  updateRolePermissions: (roleId: RoleId, permissions: number[]) => void;
   updateRole: (
   roleId: RoleId,
   patch: Partial<Omit<Role, 'id' | 'isBuiltIn'>>)
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: {children: ReactNode;}) {
     setRoles((prev) => [...prev, newRole]);
     return newRole;
   };
-  const updateRolePermissions = (roleId: RoleId, permissions: Permission[]) => {
+  const updateRolePermissions = (roleId: RoleId, permissions: number[]) => {
     setRoles((prev) =>
     prev.map((r) =>
     r.id === roleId ?
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: {children: ReactNode;}) {
         updateRole,
         deleteRole
       }}>
-      
+
       {children}
     </AuthContext.Provider>);
 

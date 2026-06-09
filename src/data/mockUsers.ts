@@ -57,7 +57,7 @@ export const initialRoles: Role[] = [
 
 export const mockUsers: User[] = [
 {
-  id: 'u1',
+  id: 1,
   name: 'สมชาย ใจดี',
   email: 'somchai@retailpos.th',
   roleId: 'owner',
@@ -66,7 +66,7 @@ export const mockUsers: User[] = [
   createdAt: '2024-01-15T08:00:00Z'
 },
 {
-  id: 'u2',
+  id: 2,
   name: 'มาลี ศรีสุข',
   email: 'malee@retailpos.th',
   roleId: 'manager',
@@ -75,7 +75,7 @@ export const mockUsers: User[] = [
   createdAt: '2024-02-10T08:00:00Z'
 },
 {
-  id: 'u3',
+  id: 3,
   name: 'อนุชา รักดี',
   email: 'anucha@retailpos.th',
   roleId: 'cashier',
@@ -84,7 +84,7 @@ export const mockUsers: User[] = [
   createdAt: '2024-05-22T08:00:00Z'
 },
 {
-  id: 'u4',
+  id: 4,
   name: 'สุดา จันทร์เพ็ญ',
   email: 'suda@retailpos.th',
   roleId: 'cashier',
@@ -93,7 +93,7 @@ export const mockUsers: User[] = [
   createdAt: '2024-08-01T08:00:00Z'
 },
 {
-  id: 'u5',
+  id: 5,
   name: 'ประเสริฐ มั่นคง',
   email: 'prasert@retailpos.th',
   roleId: 'cashier',

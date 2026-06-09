@@ -1,35 +1,68 @@
-import React, { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Edit, Trash2, X, Search, Shield, UserPlus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { User, RoleId } from '../types';
+import { Role, User, RoleId } from '../types';
 import { formatDate } from '../utils/format';
 import { getRoleColor } from '../utils/roleColors';
+import { getUsers, createUserApi, updateUserApi, deleteUserApi } from "../services/userApi";
+import { getRoles } from "../services/roleApi";
+
 export function AdminUsers() {
-  const { users, roles, addUser, updateUser, deleteUser, currentUser } =
+  const { addUser, updateUser, deleteUser, currentUser } =
   useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    roleId: 'cashier' as RoleId,
-    status: 'active' as 'active' | 'inactive'
+    name: "",
+    email: "",
+    password: "",
+    roleId: 0,
+    status: "active" as "active" | "inactive",
   });
-  const filteredUsers = users.filter(
-    (u) =>
-    u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  async function loadUsers() {
+    try {
+      const [userData, roleData] = await Promise.all([
+        getUsers(),
+        getRoles(),
+      ]);
+
+      setUsers(Array.isArray(userData) ? userData : []);
+      setRoles(Array.isArray(roleData) ? roleData : []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const filteredUsers = useMemo(() => {
+    const userList = Array.isArray(users) ? users : [];
+    const keyword = searchQuery.toLowerCase();
+
+    return userList.filter((u) => {
+      return (
+        u.name?.toLowerCase().includes(keyword) ||
+        u.email?.toLowerCase().includes(keyword)
+      );
+    });
+  }, [users, searchQuery]);
+
   const getRoleName = (roleId: RoleId) =>
   roles.find((r) => r.id === roleId)?.name || roleId;
   const openAddModal = () => {
-    setEditingUser(null);
+  setEditingUser(null);
     setForm({
-      name: '',
-      email: '',
-      roleId: 'cashier',
-      status: 'active'
+      name: "",
+      email: "",
+      password: "",
+      roleId: roles[0]?.id ?? 0,
+      status: "active",
     });
     setIsModalOpen(true);
   };
@@ -38,23 +71,78 @@ export function AdminUsers() {
     setForm({
       name: user.name,
       email: user.email,
+      password: user.password,
       roleId: user.roleId,
       status: user.status
     });
     setIsModalOpen(true);
   };
-  const handleSave = () => {
-    if (!form.name.trim() || !form.email.trim()) return;
-    if (editingUser) {
-      updateUser(editingUser.id, form);
-    } else {
-      addUser(form);
+  // const handleSave = () => {
+  //   if (!form.name.trim() || !form.email.trim()) return;
+  //   if (editingUser) {
+  //     updateUser(editingUser.id, form);
+  //   } else {
+  //     addUser(form);
+  //   }
+  //   setIsModalOpen(false);
+  // };
+
+  const handleSave = async () => {
+    if (!form.name.trim() || !form.email.trim() || !form.roleId) return;
+
+    const payload = {
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      roleId: Number(form.roleId),
+      status: form.status === "active",
+    };
+
+    try {
+      if (editingUser) {
+        const updatedUser = await updateUserApi(Number(editingUser.id), payload);
+
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === editingUser.id
+              ? {
+                  ...u,
+                  ...updatedUser,
+                  status: updatedUser.status ? "active" : "inactive",
+                }
+              : u
+          )
+        );
+      } else {
+        const createdUser = await createUserApi(payload);
+
+        setUsers((prev) => [
+          ...prev,
+          {
+            ...createdUser,
+            status: createdUser.status ? "active" : "inactive",
+          },
+        ]);
+      }
+
+      setIsModalOpen(false);
+      setEditingUser(null);
+    } catch (error) {
+      console.error(error);
+      alert("บันทึกผู้ใช้ไม่สำเร็จ");
     }
-    setIsModalOpen(false);
   };
-  const handleDelete = (user: User) => {
-    if (window.confirm(`ยืนยันการลบผู้ใช้ "${user.name}"?`)) {
-      deleteUser(user.id);
+
+  const handleDelete = async (user: User) => {
+    if (!window.confirm(`ยืนยันการลบผู้ใช้ "${user.name}"?`)) return;
+
+    try {
+      await deleteUserApi(Number(user.id));
+
+      await loadUsers(); // fetch ใหม่หลังลบ
+    } catch (error) {
+      console.error(error);
+      alert("ลบผู้ใช้ไม่สำเร็จ");
     }
   };
   return (
@@ -253,23 +341,44 @@ export function AdminUsers() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                  บทบาท <span className="text-rose-500">*</span>
+                  รหัสผ่าน <span className="text-rose-500">*</span>
                 </label>
-                <select
-                value={form.roleId}
+                <input
+                type="password"
+                value={form.password}
                 onChange={(e) =>
                 setForm({
                   ...form,
-                  roleId: e.target.value as RoleId
+                  password: e.target.value
                 })
                 }
-                className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                placeholder="123456"
+                className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none" />
 
-                  {roles.map((role) =>
-                <option key={role.id} value={role.id}>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  บทบาท <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={form.roleId}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      roleId: Number(e.target.value),
+                    })
+                  }
+                  className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+                >
+                  <option value={0} disabled>
+                    เลือกบทบาท
+                  </option>
+
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
                       {role.name} — {role.description}
                     </option>
-                )}
+                  ))}
                 </select>
               </div>
               <div>

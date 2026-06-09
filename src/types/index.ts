@@ -1,7 +1,7 @@
-export interface Category {
-  id: string;
-  name: string;
-}
+// export interface Category {
+//   id: string;
+//   name: string;
+// }
 
 export interface Product {
   id: string;
@@ -54,7 +54,7 @@ export interface StockMovement {
   user: string;
 }
 
-export type RoleId = string;
+export type RoleId = number;
 
 export type Permission =
 'view:dashboard' |
@@ -75,17 +75,26 @@ export interface Role {
   id: RoleId;
   name: string;
   description: string;
-  permissions: Permission[];
+  permissions: number[];
   isBuiltIn?: boolean;
 }
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
+  password: string;
   roleId: RoleId;
   status: 'active' | 'inactive';
   avatar?: string;
   lastLogin?: string;
   createdAt: string;
+}
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  status: boolean;
+  createDate?: string;
+  updateDate?: string;
 }

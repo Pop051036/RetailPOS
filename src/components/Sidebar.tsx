@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -16,8 +16,10 @@ import {
 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
-import { Permission } from '../types';
+import { Permission, User, Role } from '../types';
 import { getRoleColor } from '../utils/roleColors';
+import { getUsers } from "../services/userApi";
+import { getRoles } from "../services/roleApi";
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,8 +34,10 @@ interface NavItem {
 }
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { totalQty } = useCart();
-  const { currentUser, users, roles, setCurrentUserById, hasPermission } =
+  const { currentUser, setCurrentUserById, hasPermission } =
   useAuth();
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const currentRole = roles.find((r) => r.id === currentUser.roleId);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navItems: NavItem[] = [
@@ -102,6 +106,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     section: 'admin'
   }];
 
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  async function loadUsers() {
+    try {
+      const [userData, roleData] = await Promise.all([
+        getUsers(),
+        getRoles(),
+      ]);
+
+      setUsers(Array.isArray(userData) ? userData : []);
+      setRoles(Array.isArray(roleData) ? roleData : []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const mainItems = navItems.filter(
     (i) => i.section === 'main' && hasPermission(i.permission)
   );
@@ -117,7 +139,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     className={({ isActive }) =>
     `flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors duration-200 ${isActive ? 'bg-indigo-600/10 text-indigo-400 font-medium' : 'hover:bg-slate-800 hover:text-white'}`
     }>
-    
+
       <span className="flex items-center">
         <span className="mr-3">{item.icon}</span>
         {item.name}
@@ -140,7 +162,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={`w-64 bg-slate-900 text-slate-300 flex flex-col h-screen fixed left-0 top-0 z-40 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-        
+
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950 shrink-0">
           <div className="flex items-center">
             <Store className="text-indigo-500 mr-3" size={24} />
@@ -152,7 +174,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             onClick={onClose}
             className="lg:hidden p-1 text-slate-400 hover:text-white"
             aria-label="ปิดเมนู">
-            
+
             <X size={20} />
           </button>
         </div>
@@ -191,10 +213,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       setShowUserMenu(false);
                     }}
                     className={`w-full text-left px-3 py-2.5 flex items-center hover:bg-slate-700/50 transition-colors ${isActive ? 'bg-slate-700/30' : ''}`}>
-                    
+
                       <div
                       className={`w-7 h-7 rounded-full ${getRoleColor(u.roleId).avatar} flex items-center justify-center text-white font-bold text-xs mr-2.5 shrink-0`}>
-                      
+
                         {u.name.charAt(0)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -220,10 +242,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
             className="w-full flex items-center p-2 rounded-lg hover:bg-slate-800 transition-colors">
-            
+
             <div
               className={`w-9 h-9 rounded-full ${getRoleColor(currentUser.roleId).avatar} flex items-center justify-center text-white font-bold text-sm shrink-0`}>
-              
+
               {currentUser.name.charAt(0)}
             </div>
             <div className="ml-3 flex-1 min-w-0 text-left">
@@ -237,7 +259,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <ChevronDown
               size={16}
               className={`text-slate-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-            
+
           </button>
         </div>
       </aside>

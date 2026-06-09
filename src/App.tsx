@@ -9,6 +9,7 @@ import { POS } from './pages/POS';
 import { Cart } from './pages/Cart';
 import { Products } from './pages/Products';
 import { AddProduct } from './pages/AddProduct';
+import { EditProduct } from './pages/EditProduct';
 import { Categories } from './pages/Categories';
 import { Stock } from './pages/Stock';
 import { Reports } from './pages/Reports';
@@ -29,7 +30,7 @@ export function App() {
                     <Dashboard />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="pos"
                 element={
@@ -37,7 +38,7 @@ export function App() {
                     <POS />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="cart"
                 element={
@@ -45,7 +46,7 @@ export function App() {
                     <Cart />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="products"
                 element={
@@ -53,7 +54,7 @@ export function App() {
                     <Products />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="products/new"
                 element={
@@ -61,7 +62,15 @@ export function App() {
                     <AddProduct />
                   </ProtectedRoute>
                 } />
-              
+
+              <Route
+                path="products/:id"
+                element={
+                <ProtectedRoute permission="manage:products">
+                  <EditProduct />
+                </ProtectedRoute>
+                } />
+
               <Route
                 path="categories"
                 element={
@@ -69,7 +78,7 @@ export function App() {
                     <Categories />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="stock"
                 element={
@@ -77,7 +86,7 @@ export function App() {
                     <Stock />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="reports"
                 element={
@@ -85,7 +94,7 @@ export function App() {
                     <Reports />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="admin/users"
                 element={
@@ -93,7 +102,7 @@ export function App() {
                     <AdminUsers />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="admin/roles"
                 element={
@@ -101,7 +110,7 @@ export function App() {
                     <AdminRoles />
                   </ProtectedRoute>
                 } />
-              
+
               <Route
                 path="admin/roles/new"
                 element={
@@ -109,7 +118,7 @@ export function App() {
                     <AddRole />
                   </ProtectedRoute>
                 } />
-              
+
             </Route>
           </Routes>
         </CartProvider>
